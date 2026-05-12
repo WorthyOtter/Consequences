@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 /*
@@ -189,7 +190,6 @@ public class PlayerMovement : MonoBehaviour
     {
         canJump = false;
         isJumping = true;
-
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
