@@ -30,6 +30,9 @@ public class PlayerMovement : MonoBehaviour
     public float upGravityScale = 1f;
     public float downGravityScale = 1.5f;
 
+    [Header("Crouch")]
+    public float crouchSpeedMultiplier = 0.4f;
+
     [Header("Jump")]
     public float jumpForce = 10f;
 
@@ -51,6 +54,8 @@ public class PlayerMovement : MonoBehaviour
     private bool canWalkOnSlope;
     private bool isJumping;
     private bool canJump;
+    private bool facingRight = true;
+    private bool isCrouching;
 
     private float slopeDownAngle;
     private float slopeSideAngle;
@@ -79,7 +84,12 @@ public class PlayerMovement : MonoBehaviour
     {
         CheckGround();
 
-        if (input.JumpPressed && canJump)
+        if (!isGrounded)
+            isCrouching = false;
+        else if (input.CrouchPressed)
+            isCrouching = !isCrouching;
+
+        if (input.JumpPressed && canJump && !isCrouching)
         {
             Jump();
         }
@@ -109,13 +119,13 @@ public class PlayerMovement : MonoBehaviour
     private void HandleMovement()
     {
         float inputX = input.MoveInput.x;
-        float targetSpeed = inputX * moveSpeed;
+        float speed = isCrouching ? moveSpeed * crouchSpeedMultiplier : moveSpeed;
+        float targetSpeed = inputX * speed;
 
         float accelRate;
         if (isGrounded)
         {
             accelRate = Mathf.Abs(targetSpeed) > 0.01f ? acceleration : deceleration;
-            //spriteAnimator.SetBool("Jumping", false);
         }
         else
             accelRate = Mathf.Abs(targetSpeed) > 0.01f ? airAcceleration : airDeceleration;
@@ -132,7 +142,7 @@ public class PlayerMovement : MonoBehaviour
             }
             else
             {
-                rb.linearVelocity = new Vector2(inputX * moveSpeed, rb.linearVelocity.y);
+                rb.linearVelocity = new Vector2(inputX * speed, rb.linearVelocity.y);
                 rb.gravityScale = 1;
             }
         }
@@ -144,24 +154,15 @@ public class PlayerMovement : MonoBehaviour
 
         }
 
-        if (Mathf.Abs(inputX) > 0.1f)
-        {
-            //spriteAnimator.SetBool("Walking", true);
-        }
-        else
-        {
-            //spriteAnimator.SetBool("Walking", false);
-        }
-
-
         if (inputX > 0)
-        {
-            spriteRenderer.flipX = false;
-        }
+            facingRight = true;
         else if (inputX < 0)
-        {
-            spriteRenderer.flipX = true;
-        }
+            facingRight = false;
+
+        spriteRenderer.flipX = !facingRight;
+        spriteAnimator.SetBool("IsMoving", Mathf.Abs(inputX) > 0.1f);
+        spriteAnimator.SetBool("IsGrounded", isGrounded);
+        spriteAnimator.SetBool("IsCrouching", isCrouching);
 
         HandleFootsteps();
     }
@@ -191,7 +192,6 @@ public class PlayerMovement : MonoBehaviour
 
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-        //spriteAnimator.SetBool("Jumping", true);
     }
 
     private void CheckGround()
