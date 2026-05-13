@@ -287,7 +287,7 @@ MonoBehaviour:
   groundCheckRadius: 0.2
   groundLayer:
     serializedVersion: 2
-    m_Bits: 1024
+    m_Bits: 1280
   slopeCheckDistance: 0.4
   maxSlopeAngle: 50
   noFriction: {fileID: 6200000, guid: 4bbab9f8bea9a7f468bfa73cd5643661, type: 2}
@@ -394,6 +394,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttemptRecorder
   sampleRate: 30
   spriteRenderer: {fileID: 863484616628676596}
+  animator: {fileID: 3265052151268656007}
 --- !u!114 &7299500839870925827
 MonoBehaviour:
   m_ObjectHideFlags: 0

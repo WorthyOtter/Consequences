@@ -7,6 +7,7 @@ public class PlayerAttemptRecorder : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private SpriteRenderer spriteRenderer;
+    [SerializeField] private Animator animator;
 
     private AttemptData currentAttempt;
     private float timer;
@@ -19,6 +20,9 @@ public class PlayerAttemptRecorder : MonoBehaviour
     {
         if (spriteRenderer == null)
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+
+        if (animator == null)
+            animator = GetComponentInChildren<Animator>();
     }
 
     public void StartRecording()
@@ -57,10 +61,21 @@ public class PlayerAttemptRecorder : MonoBehaviour
     {
         bool flipX = spriteRenderer != null && spriteRenderer.flipX;
 
+        int animHash = 0;
+        float animTime = 0f;
+        if (animator != null)
+        {
+            AnimatorStateInfo info = animator.GetCurrentAnimatorStateInfo(0);
+            animHash = info.fullPathHash;
+            animTime = info.normalizedTime;
+        }
+
         currentAttempt.frames.Add(new AttemptFrame(
             timer,
             transform.position,
-            flipX
+            flipX,
+            animHash,
+            animTime
         ));
     }
 }

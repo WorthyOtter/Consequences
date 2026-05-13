@@ -4,6 +4,7 @@ public class ReplayClone : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private SpriteRenderer spriteRenderer;
+    [SerializeField] private Animator animator;
 
     [Header("Replay")]
     [SerializeField] private bool interpolateMovement = true;
@@ -14,10 +15,43 @@ public class ReplayClone : MonoBehaviour
     private int frameIndex;
     private bool isReplaying;
 
+    private Rigidbody2D rb;
+    private Vector2 targetPosition;
+
     private void Awake()
     {
         if (spriteRenderer == null)
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+
+        if (animator == null)
+            animator = GetComponentInChildren<Animator>();
+
+        if (animator != null)
+            animator.fireEvents = false;
+
+        SetupPhysics();
+        targetPosition = transform.position;
+    }
+
+    private void SetupPhysics()
+    {
+        rb = gameObject.AddComponent<Rigidbody2D>();
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.interpolation = RigidbodyInterpolation2D.Interpolate;
+        rb.useFullKinematicContacts = true;
+        rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+
+        CapsuleCollider2D col = gameObject.AddComponent<CapsuleCollider2D>();
+        col.size = new Vector2(0.163f, 0.521f);
+        col.offset = new Vector2(-0.008f, -0.004f);
+        col.usedByEffector = true;
+
+        PlatformEffector2D effector = gameObject.AddComponent<PlatformEffector2D>();
+        effector.useOneWay = true;
+        effector.rotationalOffset = 0f;
+        effector.surfaceArc = 160f;
+        effector.useSideFriction = false;
+        effector.useSideBounce = false;
     }
 
     public void BeginReplay(AttemptData data)
@@ -35,7 +69,14 @@ public class ReplayClone : MonoBehaviour
 
         isReplaying = true;
 
-        ApplyFrame(attemptData.frames[0]);
+        // Snap directly before first FixedUpdate runs.
+        targetPosition = attemptData.frames[0].position;
+        if (rb != null)
+            rb.position = targetPosition;
+        else
+            transform.position = new Vector3(targetPosition.x, targetPosition.y, transform.position.z);
+
+        ApplyVisuals(attemptData.frames[0]);
 
         Debug.Log("Clone replay started. Frames: " + attemptData.frames.Count);
     }
@@ -102,11 +143,7 @@ public class ReplayClone : MonoBehaviour
                 t
             );
 
-            transform.position = new Vector3(
-                lerpedPosition.x,
-                lerpedPosition.y,
-                transform.position.z
-            );
+            targetPosition = lerpedPosition;
         }
         else
         {
@@ -116,14 +153,15 @@ public class ReplayClone : MonoBehaviour
         ApplyVisuals(currentFrame);
     }
 
+    private void FixedUpdate()
+    {
+        if (rb != null)
+            rb.MovePosition(targetPosition);
+    }
+
     private void ApplyFrame(AttemptFrame frame)
     {
-        transform.position = new Vector3(
-            frame.position.x,
-            frame.position.y,
-            transform.position.z
-        );
-
+        targetPosition = frame.position;
         ApplyVisuals(frame);
     }
 
@@ -131,6 +169,9 @@ public class ReplayClone : MonoBehaviour
     {
         if (spriteRenderer != null)
             spriteRenderer.flipX = frame.flipX;
+
+        if (animator != null && frame.animStateHash != 0)
+            animator.Play(frame.animStateHash, 0, frame.animNormalizedTime % 1f);
     }
 
     private void FinishReplay()
