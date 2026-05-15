@@ -7,6 +7,7 @@ public class PlayerInputHandler : MonoBehaviour
     public InputAction JumpAction;
     public InputAction InteractAction;
     public InputAction RetryAction;
+    public InputAction CrouchAction;
     public bool JumpHeld => JumpAction.IsPressed();
 
 
@@ -14,6 +15,7 @@ public class PlayerInputHandler : MonoBehaviour
     public bool JumpPressed { get; private set; }
     public bool InteractPressed { get; private set; }
     public bool RetryPressed { get; private set; }
+    public bool CrouchPressed { get; private set; }
 
     private void OnEnable()
     {
@@ -21,6 +23,7 @@ public class PlayerInputHandler : MonoBehaviour
         JumpAction.Enable();
         InteractAction.Enable();
         RetryAction.Enable();
+        CrouchAction.Enable();
     }
 
     private void OnDisable()
@@ -29,6 +32,7 @@ public class PlayerInputHandler : MonoBehaviour
         JumpAction.Disable();
         InteractAction.Disable();
         RetryAction.Disable();
+        CrouchAction.Disable();
     }
 
     private void Update()
@@ -37,6 +41,7 @@ public class PlayerInputHandler : MonoBehaviour
         JumpPressed = JumpAction.triggered;
         InteractPressed = InteractAction.triggered;
         RetryPressed = RetryAction.triggered;
+        CrouchPressed = CrouchAction.triggered;
     }
 
 }

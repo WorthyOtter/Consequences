@@ -65,7 +65,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 3, y: 3, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5114486927335099915}
@@ -118,14 +118,14 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 9
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 47742ee7f0e7f4f7b8c889bfb92d67c4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 0.68, y: 0.68}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -242,6 +242,23 @@ MonoBehaviour:
       m_Action: Retry
       m_Flags: 0
     m_Flags: 0
+  CrouchAction:
+    m_Name: Crouch
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 5d9cea61-3a4e-4cb0-87af-f9a97d36b680
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings:
+    - m_Name: 
+      m_Id: c3f1a2b4-d5e6-4f78-9a0b-1c2d3e4f5a6b
+      m_Path: <Keyboard>/c
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Crouch
+      m_Flags: 0
+    m_Flags: 0
 --- !u!114 &4739934779247733594
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -264,6 +281,7 @@ MonoBehaviour:
   airDeceleration: 15
   upGravityScale: 1
   downGravityScale: 1.5
+  crouchSpeedMultiplier: 0.4
   jumpForce: 10
   groundCheck: {fileID: 5114486927335099915}
   groundCheckRadius: 0.2
@@ -310,8 +328,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_Size: {x: 1, y: 1}
+  m_Offset: {x: -0.007883142, y: -0.004165451}
+  m_Size: {x: 0.16309285, y: 0.5210335}
   m_Direction: 0
 --- !u!50 &8078872595139743984
 Rigidbody2D:
@@ -350,7 +368,7 @@ Animator:
   m_GameObject: {fileID: 4950595433111368189}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 31e0a2ccd82484748a4e3ea10be2c906, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
