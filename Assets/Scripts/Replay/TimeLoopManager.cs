@@ -13,10 +13,10 @@ public class TimeLoopManager : MonoBehaviour
     [Header("Loop Settings")]
     [SerializeField] private int maxCopies = 3;
 
-    private readonly List<AttemptData> savedAttempts = new List<AttemptData>();
+    private readonly List<InputAttemptData> savedAttempts = new List<InputAttemptData>();
 
     private GameObject currentPlayer;
-    private PlayerAttemptRecorder currentRecorder;
+    private InputAttemptRecorder currentRecorder;
 
     private void Start()
     {
@@ -48,7 +48,7 @@ public class TimeLoopManager : MonoBehaviour
             spawnPoint.rotation
         );
 
-        currentRecorder = currentPlayer.GetComponent<PlayerAttemptRecorder>();
+        currentRecorder = currentPlayer.GetComponent<InputAttemptRecorder>();
 
         if (currentRecorder != null)
             currentRecorder.StartRecording();
@@ -59,7 +59,7 @@ public class TimeLoopManager : MonoBehaviour
         if (currentRecorder == null)
             return;
 
-        AttemptData attempt = currentRecorder.StopRecording();
+        InputAttemptData attempt = currentRecorder.StopRecording();
 
         if (attempt == null || attempt.frames == null || attempt.frames.Count < 2)
         {
@@ -67,7 +67,7 @@ public class TimeLoopManager : MonoBehaviour
             return;
         }
 
-        if (attempt.Duration < 0.2f)
+        if (attempt.DurationTicks < 0.2f)
         {
             Debug.Log("Attempt ignored. Too short.");
             return;
@@ -83,7 +83,7 @@ public class TimeLoopManager : MonoBehaviour
 
     private void SpawnReplayClones()
     {
-        foreach (AttemptData attempt in savedAttempts)
+        foreach (InputAttemptData attempt in savedAttempts)
         {
             GameObject cloneObject = Instantiate(
                 replayClonePrefab,
@@ -91,7 +91,7 @@ public class TimeLoopManager : MonoBehaviour
                 spawnPoint.rotation
             );
 
-            ReplayClone replayClone = cloneObject.GetComponent<ReplayClone>();
+            ReplayInputDriver replayClone = cloneObject.GetComponent<ReplayInputDriver>();
 
             if (replayClone != null)
                 replayClone.BeginReplay(attempt);
@@ -100,9 +100,9 @@ public class TimeLoopManager : MonoBehaviour
 
     private void ClearOldClones()
     {
-        ReplayClone[] clones = FindObjectsByType<ReplayClone>();
+        ReplayInputDriver[] clones = FindObjectsByType<ReplayInputDriver>();
 
-        foreach (ReplayClone clone in clones)
+        foreach (ReplayInputDriver clone in clones)
         {
             Destroy(clone.gameObject);
         }

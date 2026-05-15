@@ -46,8 +46,8 @@ GameObject:
   - component: {fileID: 7098702565992962287}
   - component: {fileID: 8078872595139743984}
   - component: {fileID: 3265052151268656007}
-  - component: {fileID: 7972045348422864629}
   - component: {fileID: 7299500839870925827}
+  - component: {fileID: 5147352493789061422}
   m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
@@ -269,7 +269,7 @@ MonoBehaviour:
   groundCheckRadius: 0.2
   groundLayer:
     serializedVersion: 2
-    m_Bits: 1024
+    m_Bits: 1280
   slopeCheckDistance: 0.4
   maxSlopeAngle: 50
   noFriction: {fileID: 6200000, guid: 4bbab9f8bea9a7f468bfa73cd5643661, type: 2}
@@ -362,20 +362,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &7972045348422864629
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4950595433111368189}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c02382fb208be8b4db26a556c4326ce3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerAttemptRecorder
-  sampleRate: 30
-  spriteRenderer: {fileID: 863484616628676596}
 --- !u!114 &7299500839870925827
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -388,4 +374,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be14558e1e2565f45b6a90b858e87fb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerDeath
+  input: {fileID: 3997596774567977755}
+--- !u!114 &5147352493789061422
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4950595433111368189}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de10003feaded3d4784cbc9a77103745, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InputAttemptRecorder
   input: {fileID: 3997596774567977755}
