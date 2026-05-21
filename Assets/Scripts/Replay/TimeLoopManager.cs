@@ -52,6 +52,13 @@ public class TimeLoopManager : MonoBehaviour
 
         if (currentRecorder != null)
             currentRecorder.StartRecording();
+        // Update Cinemachine follow target
+        DynamicCamera dynamicCamera = FindAnyObjectByType<DynamicCamera>();
+
+        if (dynamicCamera != null)
+        {
+            dynamicCamera.camera.Follow = currentPlayer.transform;
+        }
     }
 
     private void SaveCurrentAttempt()
