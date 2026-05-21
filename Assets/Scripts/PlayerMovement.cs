@@ -10,7 +10,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement : MonoBehaviour, IKnockbackTarget
 {
     [Header("References")]
     private Rigidbody2D rb;

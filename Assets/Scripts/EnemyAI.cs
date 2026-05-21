@@ -1,9 +1,11 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /*
     Simple chase-and-attack enemy.
-    Idle until it has line of sight to the player, then walks toward them,
-    and once in range plays the attack animation which knocks the player back.
+    Idle until it has line of sight to a target (the player or a clone), then
+    walks toward the closest visible one, and once in range plays the attack
+    animation which knocks that target back.
 */
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -16,6 +18,8 @@ public class EnemyAI : MonoBehaviour
     [Header("Detection")]
     [SerializeField] private float sightRange = 8f;
     [SerializeField] private float attackRange = 1.5f;
+    [Tooltip("Layers that count as targets (Player + Clone).")]
+    [SerializeField] private LayerMask targetMask;
     [Tooltip("Layers that block line of sight (e.g. Ground).")]
     [SerializeField] private LayerMask obstacleMask;
 
@@ -29,23 +33,30 @@ public class EnemyAI : MonoBehaviour
     [Tooltip("How long the attack state lasts before re-evaluating.")]
     [SerializeField] private float attackDuration = 0.35f;
 
-    [Header("Knockback Applied To Player")]
+    [Header("Knockback Applied To Target")]
     [SerializeField] private float knockbackForce = 12f;
     [SerializeField] private float knockbackUp = 4f;
-    [Tooltip("How long the player loses movement control after the hit.")]
+    [Tooltip("How long the target loses movement control after the hit.")]
     [SerializeField] private float knockbackLockout = 0.2f;
 
     private Rigidbody2D rb;
     private Animator animator;
     private SpriteRenderer spriteRenderer;
 
-    private PlayerMovement player;
     private State state = State.Idle;
+
+    // The target currently being chased/attacked. A UnityEngine.Object reference
+    // so destroyed clones compare == null correctly.
+    private MonoBehaviour target;
 
     // Attack sequencing.
     private float attackTimer;
     private float cooldownTimer;
     private bool knockbackApplied;
+
+    // Reusable buffers for target detection (no per-frame allocations).
+    private ContactFilter2D targetFilter;
+    private readonly List<Collider2D> overlapResults = new List<Collider2D>();
 
     private static readonly int IdleHash = Animator.StringToHash("EnemyIdle");
     private static readonly int WalkHash = Animator.StringToHash("EnemyWalk");
@@ -57,6 +68,10 @@ public class EnemyAI : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+
+        targetFilter = new ContactFilter2D();
+        targetFilter.SetLayerMask(targetMask);
+        targetFilter.useTriggers = false;
     }
 
     private void FixedUpdate()
@@ -64,47 +79,64 @@ public class EnemyAI : MonoBehaviour
         if (cooldownTimer > 0f)
             cooldownTimer -= Time.fixedDeltaTime;
 
-        if (!AcquirePlayer())
-        {
-            EnterIdle();
-            return;
-        }
-
-        // Once an attack has started it runs to completion.
+        // Once an attack has started it runs to completion on the same target.
         if (state == State.Attack)
         {
             TickAttack();
             return;
         }
 
-        bool hasLineOfSight = HasLineOfSight(out float distance);
+        target = FindClosestVisibleTarget();
 
-        if (hasLineOfSight && distance <= attackRange && cooldownTimer <= 0f)
+        if (target == null)
+        {
+            EnterIdle();
+            return;
+        }
+
+        float distance = Vector2.Distance(transform.position, target.transform.position);
+
+        if (distance <= attackRange && cooldownTimer <= 0f)
             BeginAttack();
-        else if (hasLineOfSight && distance > attackRange)
+        else if (distance > attackRange)
             Chase();
         else
             EnterIdle();
     }
 
-    private bool AcquirePlayer()
+    // Picks the nearest target within sight range that isn't blocked by an obstacle.
+    private MonoBehaviour FindClosestVisibleTarget()
     {
-        // Re-acquire after time-loop respawns destroy the old player.
-        if (player == null)
-            player = FindAnyObjectByType<PlayerMovement>();
-        return player != null;
+        Physics2D.OverlapCircle(transform.position, sightRange, targetFilter, overlapResults);
+
+        MonoBehaviour closest = null;
+        float closestSqr = float.MaxValue;
+
+        foreach (Collider2D col in overlapResults)
+        {
+            IKnockbackTarget candidate = col.GetComponent<IKnockbackTarget>();
+            if (candidate == null)
+                continue;
+
+            Vector2 candidatePos = col.transform.position;
+            if (!HasLineOfSight(candidatePos))
+                continue;
+
+            float sqr = ((Vector2)transform.position - candidatePos).sqrMagnitude;
+            if (sqr < closestSqr)
+            {
+                closestSqr = sqr;
+                closest = candidate as MonoBehaviour;
+            }
+        }
+
+        return closest;
     }
 
-    private bool HasLineOfSight(out float distance)
+    private bool HasLineOfSight(Vector2 targetPos)
     {
-        Vector2 toPlayer = (Vector2)player.transform.position - (Vector2)transform.position;
-        distance = toPlayer.magnitude;
-
-        if (distance > sightRange)
-            return false;
-
-        // Blocked if an obstacle sits between us and the player.
-        return Physics2D.Linecast(transform.position, player.transform.position, obstacleMask).collider == null;
+        // Blocked if an obstacle sits between us and the target.
+        return Physics2D.Linecast(transform.position, targetPos, obstacleMask).collider == null;
     }
 
     private void Chase()
@@ -112,7 +144,7 @@ public class EnemyAI : MonoBehaviour
         state = State.Chase;
         Play(WalkHash);
 
-        float dirX = Mathf.Sign(player.transform.position.x - transform.position.x);
+        float dirX = Mathf.Sign(target.transform.position.x - transform.position.x);
         rb.linearVelocity = new Vector2(dirX * moveSpeed, rb.linearVelocity.y);
         FaceDirection(dirX);
     }
@@ -131,7 +163,7 @@ public class EnemyAI : MonoBehaviour
         knockbackApplied = false;
         Play(AttackHash);
         rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
-        FaceDirection(Mathf.Sign(player.transform.position.x - transform.position.x));
+        FaceDirection(Mathf.Sign(target.transform.position.x - transform.position.x));
     }
 
     private void TickAttack()
@@ -142,7 +174,7 @@ public class EnemyAI : MonoBehaviour
         if (!knockbackApplied && attackTimer >= attackWindup)
         {
             knockbackApplied = true;
-            ShovePlayer();
+            ShoveTarget();
         }
 
         if (attackTimer >= attackDuration)
@@ -152,13 +184,14 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    private void ShovePlayer()
+    private void ShoveTarget()
     {
-        if (player == null)
+        if (target == null)
             return;
 
-        float dirX = Mathf.Sign(player.transform.position.x - transform.position.x);
-        player.ApplyKnockback(new Vector2(dirX * knockbackForce, knockbackUp), knockbackLockout);
+        float dirX = Mathf.Sign(target.transform.position.x - transform.position.x);
+        ((IKnockbackTarget)target).ApplyKnockback(
+            new Vector2(dirX * knockbackForce, knockbackUp), knockbackLockout);
     }
 
     private void FaceDirection(float dirX)

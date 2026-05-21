@@ -204,6 +204,9 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   sightRange: 8
   attackRange: 1.5
+  targetMask:
+    serializedVersion: 2
+    m_Bits: 384
   obstacleMask:
     serializedVersion: 2
     m_Bits: 1024
