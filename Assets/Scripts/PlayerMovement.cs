@@ -10,7 +10,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement : MonoBehaviour, IKnockbackTarget
 {
     [Header("References")]
     private Rigidbody2D rb;
@@ -71,6 +71,8 @@ public class PlayerMovement : MonoBehaviour
     private float footstepTimer;
     private float timeSinceGrounded = 0;
 
+    private float knockbackTimer;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -119,6 +121,13 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleMovement()
     {
+        // While knocked back, ignore input so the hit actually moves the player.
+        if (knockbackTimer > 0f)
+        {
+            knockbackTimer -= Time.fixedDeltaTime;
+            return;
+        }
+
         float inputX = input.MoveInput.x;
         float speed = isCrouching ? moveSpeed * crouchSpeedMultiplier : moveSpeed;
         float targetSpeed = inputX * speed;
@@ -192,6 +201,14 @@ public class PlayerMovement : MonoBehaviour
         isJumping = true;
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+    }
+
+    // Called by enemies to shove the player. Movement input is suspended for
+    // lockoutDuration so the knockback velocity isn't immediately overwritten.
+    public void ApplyKnockback(Vector2 velocity, float lockoutDuration)
+    {
+        rb.linearVelocity = velocity;
+        knockbackTimer = lockoutDuration;
     }
 
     private void CheckGround()
