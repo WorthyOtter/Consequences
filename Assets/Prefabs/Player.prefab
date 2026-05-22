@@ -292,7 +292,11 @@ MonoBehaviour:
   maxSlopeAngle: 50
   noFriction: {fileID: 6200000, guid: 4bbab9f8bea9a7f468bfa73cd5643661, type: 2}
   fullFriction: {fileID: 6200000, guid: 3d35ce682c6fcab43bd31a9803eece19, type: 2}
-  footstepInterval: 0.4
+  playerAudioGroup: {fileID: -2710608279033160277, guid: 6c58d5d0f22f4428891e4b5d671dbab0, type: 2}
+  walkLoopClip: {fileID: 8300000, guid: 075e2ff0f28dc44929de4ce771036cd4, type: 3}
+  walkVolume: 0.835
+  jumpClip: {fileID: 8300000, guid: 074f21ef8ecdb40c3ae47b9559725707, type: 3}
+  jumpVolume: 1
   minMoveSpeed: 0.2
 --- !u!70 &7098702565992962287
 CapsuleCollider2D:
@@ -354,7 +358,7 @@ Rigidbody2D:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4

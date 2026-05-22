@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 
 /*
     Simple chase-and-attack enemy.
@@ -39,9 +40,21 @@ public class EnemyAI : MonoBehaviour
     [Tooltip("How long the target loses movement control after the hit.")]
     [SerializeField] private float knockbackLockout = 0.2f;
 
+    [Header("Audio")]
+    [SerializeField] private AudioMixerGroup enemyAudioGroup;
+    [SerializeField] private AudioClip walkLoopClip;
+    [SerializeField] [Range(0f, 1f)] private float walkVolume = 1f;
+    [SerializeField] private AudioClip attackClip;
+    [SerializeField] [Range(0f, 1f)] private float attackVolume = 1f;
+    [SerializeField] private AudioClip breathingClip;
+    [SerializeField] [Range(0f, 1f)] private float breathingVolume = 1f;
+
     private Rigidbody2D rb;
     private Animator animator;
     private SpriteRenderer spriteRenderer;
+    private AudioSource walkSource;
+    private AudioSource attackSource;
+    private AudioSource breathingSource;
 
     private State state = State.Idle;
 
@@ -68,6 +81,31 @@ public class EnemyAI : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+
+        walkSource = gameObject.AddComponent<AudioSource>();
+        walkSource.clip = walkLoopClip;
+        walkSource.loop = true;
+        walkSource.playOnAwake = false;
+        walkSource.spatialBlend = 0f;          // 2D, not positional
+        walkSource.outputAudioMixerGroup = enemyAudioGroup;
+
+        attackSource = gameObject.AddComponent<AudioSource>();
+        attackSource.clip = attackClip;
+        attackSource.loop = false;
+        attackSource.playOnAwake = false;
+        attackSource.spatialBlend = 0f;
+        attackSource.outputAudioMixerGroup = enemyAudioGroup;
+
+        // Idle breathing: a constant loop, independent of Idle/Chase/Attack state.
+        breathingSource = gameObject.AddComponent<AudioSource>();
+        breathingSource.clip = breathingClip;
+        breathingSource.loop = true;
+        breathingSource.playOnAwake = false;
+        breathingSource.spatialBlend = 0f;
+        breathingSource.outputAudioMixerGroup = enemyAudioGroup;
+        breathingSource.volume = breathingVolume;
+        if (breathingClip != null)
+            breathingSource.Play();
 
         targetFilter = new ContactFilter2D();
         targetFilter.SetLayerMask(targetMask);
@@ -144,6 +182,14 @@ public class EnemyAI : MonoBehaviour
         state = State.Chase;
         Play(WalkHash);
 
+        // Loop the walk clip while chasing (~3 footsteps/sec; not frame-locked to EnemyWalk).
+        if (walkLoopClip != null)
+        {
+            walkSource.volume = walkVolume;
+            if (!walkSource.isPlaying)
+                walkSource.Play();
+        }
+
         float dirX = Mathf.Sign(target.transform.position.x - transform.position.x);
         rb.linearVelocity = new Vector2(dirX * moveSpeed, rb.linearVelocity.y);
         FaceDirection(dirX);
@@ -154,6 +200,9 @@ public class EnemyAI : MonoBehaviour
         state = State.Idle;
         Play(IdleHash);
         rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+
+        if (walkSource.isPlaying)
+            walkSource.Stop();
     }
 
     private void BeginAttack()
@@ -164,6 +213,15 @@ public class EnemyAI : MonoBehaviour
         Play(AttackHash);
         rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
         FaceDirection(Mathf.Sign(target.transform.position.x - transform.position.x));
+
+        if (walkSource.isPlaying)
+            walkSource.Stop();
+
+        if (attackClip != null)
+        {
+            attackSource.volume = attackVolume;
+            attackSource.Play();
+        }
     }
 
     private void TickAttack()
@@ -181,6 +239,10 @@ public class EnemyAI : MonoBehaviour
         {
             cooldownTimer = attackCooldown;
             state = State.Idle; // Re-evaluated next FixedUpdate.
+
+            // Attack sound only lasts as long as the attack itself.
+            if (attackSource.isPlaying)
+                attackSource.Stop();
         }
     }
 
