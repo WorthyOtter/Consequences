@@ -104,12 +104,17 @@ public class EnemyAI : MonoBehaviour
         breathingSource.spatialBlend = 0f;
         breathingSource.outputAudioMixerGroup = enemyAudioGroup;
         breathingSource.volume = breathingVolume;
-        if (breathingClip != null)
-            breathingSource.Play();
 
         targetFilter = new ContactFilter2D();
         targetFilter.SetLayerMask(targetMask);
         targetFilter.useTriggers = false;
+    }
+
+    private void Start()
+    {
+        // Start the constant breathing loop here (not Awake) so the audio system is ready.
+        if (breathingClip != null)
+            breathingSource.Play();
     }
 
     private void FixedUpdate()
