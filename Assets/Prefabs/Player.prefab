@@ -48,9 +48,10 @@ GameObject:
   - component: {fileID: 3265052151268656007}
   - component: {fileID: 7299500839870925827}
   - component: {fileID: 5147352493789061422}
+  - component: {fileID: 5776174723575578194}
   m_Layer: 7
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -406,3 +407,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InputAttemptRecorder
   input: {fileID: 3997596774567977755}
+--- !u!114 &5776174723575578194
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4950595433111368189}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f72766ef70cf9df46b93689148cad2b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Inventory
+  InventoryObjects: []

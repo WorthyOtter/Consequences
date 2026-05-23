@@ -40,6 +40,7 @@ public class CloneReplayMovement : MonoBehaviour
     [Header("Physics Materials")]
     public PhysicsMaterial2D noFriction;
     public PhysicsMaterial2D fullFriction;
+    public PhysicsMaterial2D deadFriction;
 
     [Header("Spawn Collision Safety")]
     [Tooltip("Layers the clone should temporarily ignore while spawning. Usually Player + Clone.")]
@@ -58,7 +59,6 @@ public class CloneReplayMovement : MonoBehaviour
     private bool canJump;
 
     private float slopeDownAngle;
-    private float slopeSideAngle;
     private float lastSlopeAngle;
 
     private Vector2 slopeNormalPerp;
@@ -89,17 +89,17 @@ public class CloneReplayMovement : MonoBehaviour
     {
         replayInput.AdvanceTick();
 
-        CheckGround();
+        if (canMove) CheckGround();
 
-        if (replayInput.JumpPressed && canJump)
+        if (replayInput.JumpPressed && canJump && canMove)
         {
             Jump();
         }
 
-        SlopeCheck();
-        HandleMovement();
+        if (canMove) SlopeCheck();
+        if (canMove) HandleMovement();
         HandleGravity();
-        ClampSlopePop();
+        if (canMove) ClampSlopePop();
         KillFun();
 
         UpdateSpawnCollisionSafety();
@@ -237,11 +237,30 @@ public class CloneReplayMovement : MonoBehaviour
         if (groundCheck == null)
             return;
 
-        isGrounded = Physics2D.OverlapCircle(
+        isGrounded = false;
+
+        Collider2D[] hits = Physics2D.OverlapCircleAll(
             groundCheck.position,
             groundCheckRadius,
             groundLayer
         );
+
+        foreach (Collider2D hit in hits)
+        {
+            if (hit == null)
+                continue;
+
+            // Do not count this clone's own collider as ground.
+            if (hit == cloneCollider)
+                continue;
+
+            // Also ignore any child colliders belonging to this same clone object.
+            if (hit.transform.IsChildOf(transform))
+                continue;
+
+            isGrounded = true;
+            break;
+        }
 
         if (rb.linearVelocity.y <= 0f)
             isJumping = false;
@@ -296,16 +315,13 @@ public class CloneReplayMovement : MonoBehaviour
         if (slopeHitFront)
         {
             isOnSlope = true;
-            slopeSideAngle = Vector2.Angle(slopeHitFront.normal, Vector2.up);
         }
         else if (slopeHitBack)
         {
             isOnSlope = true;
-            slopeSideAngle = Vector2.Angle(slopeHitBack.normal, Vector2.up);
         }
         else
         {
-            slopeSideAngle = 0f;
             isOnSlope = false;
         }
     }
@@ -351,6 +367,15 @@ public class CloneReplayMovement : MonoBehaviour
 
             if (noFriction != null)
                 cloneCollider.sharedMaterial = noFriction;
+        }
+    }
+    private bool canMove = true;
+    public void CanMove(bool move)
+    {
+        canMove = move;
+        if (!canMove)
+        {
+            cloneCollider.sharedMaterial = deadFriction;
         }
     }
 }

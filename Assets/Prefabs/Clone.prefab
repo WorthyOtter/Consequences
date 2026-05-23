@@ -46,9 +46,10 @@ GameObject:
   - component: {fileID: 5213333300828665153}
   - component: {fileID: 4621682171206899232}
   - component: {fileID: 3209335417486741539}
+  - component: {fileID: 3147198608430229485}
   m_Layer: 8
   m_Name: Clone
-  m_TagString: Untagged
+  m_TagString: Clone
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -256,7 +257,21 @@ MonoBehaviour:
   maxSlopeAngle: 50
   noFriction: {fileID: 6200000, guid: 4bbab9f8bea9a7f468bfa73cd5643661, type: 2}
   fullFriction: {fileID: 6200000, guid: 3d35ce682c6fcab43bd31a9803eece19, type: 2}
+  deadFriction: {fileID: 6200000, guid: b6592cb67caf37c4b834fc7f447c52ed, type: 2}
   spawnOverlapIgnoreLayers:
     serializedVersion: 2
     m_Bits: 384
   spawnOverlapBufferSize: 16
+--- !u!114 &3147198608430229485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8297998774464589088}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f72766ef70cf9df46b93689148cad2b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Inventory
+  InventoryObjects: []
