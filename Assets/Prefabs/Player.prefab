@@ -65,7 +65,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 3, y: 3, z: 1}
+  m_LocalScale: {x: 2.5, y: 2.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5114486927335099915}
@@ -274,7 +274,7 @@ MonoBehaviour:
   input: {fileID: 3997596774567977755}
   spriteAnimator: {fileID: 3265052151268656007}
   spriteRenderer: {fileID: 863484616628676596}
-  moveSpeed: 8
+  moveSpeed: 4
   acceleration: 60
   deceleration: 90
   airAcceleration: 25
@@ -282,7 +282,7 @@ MonoBehaviour:
   upGravityScale: 1
   downGravityScale: 1.5
   crouchSpeedMultiplier: 0.4
-  jumpForce: 10
+  jumpForce: 5
   groundCheck: {fileID: 5114486927335099915}
   groundCheckRadius: 0.2
   groundLayer:
