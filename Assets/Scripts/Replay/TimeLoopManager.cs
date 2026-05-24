@@ -18,9 +18,55 @@ public class TimeLoopManager : MonoBehaviour
     private GameObject currentPlayer;
     private InputAttemptRecorder currentRecorder;
 
+
+    [SerializeField] private Transform resetTemplateContainer;
+
+    private readonly List<LoopSpawnEntry> loopSpawns = new List<LoopSpawnEntry>();
+    private readonly List<GameObject> spawnedLoopObjects = new List<GameObject>();
     private void Start()
     {
+        SaveResettables();
         StartNewAttempt();
+    }
+
+    private void SaveResettables()
+    {
+        loopSpawns.Clear();
+
+        AddToResetList[] resetMarkers =
+            FindObjectsByType<AddToResetList>();
+
+        if (resetTemplateContainer == null)
+        {
+            GameObject container = new GameObject("Loop Reset Templates");
+            resetTemplateContainer = container.transform;
+            resetTemplateContainer.gameObject.SetActive(false);
+        }
+
+        foreach (AddToResetList marker in resetMarkers)
+        {
+            GameObject original = marker.gameObject;
+
+            GameObject template = Instantiate(
+                original,
+                original.transform.position,
+                original.transform.rotation,
+                resetTemplateContainer
+            );
+
+            template.name = original.name + " Template";
+            template.SetActive(false);
+
+            loopSpawns.Add(new LoopSpawnEntry
+            {
+                template = template,
+                position = original.transform.position,
+                rotation = original.transform.rotation,
+                parent = original.transform.parent
+            });
+
+            Destroy(original);
+        }
     }
 
     public void PlayerDied()
@@ -35,6 +81,8 @@ public class TimeLoopManager : MonoBehaviour
 
     private void StartNewAttempt()
     {
+        ResetLoopObjects();
+
         ClearOldClones();
         SpawnReplayClones();
         SpawnPlayer();
@@ -112,6 +160,35 @@ public class TimeLoopManager : MonoBehaviour
         foreach (ReplayInputDriver clone in clones)
         {
             Destroy(clone.gameObject);
+        }
+    }
+
+    private void ResetLoopObjects()
+    {
+        for (int i = spawnedLoopObjects.Count - 1; i >= 0; i--)
+        {
+            if (spawnedLoopObjects[i] != null)
+                Destroy(spawnedLoopObjects[i]);
+        }
+
+        spawnedLoopObjects.Clear();
+
+        foreach (LoopSpawnEntry entry in loopSpawns)
+        {
+            if (entry.template == null)
+                continue;
+
+            GameObject spawned = Instantiate(
+                entry.template,
+                entry.position,
+                entry.rotation,
+                entry.parent
+            );
+
+            spawned.name = entry.template.name.Replace(" Template", "");
+            spawned.SetActive(true);
+
+            spawnedLoopObjects.Add(spawned);
         }
     }
 }

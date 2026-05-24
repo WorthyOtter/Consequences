@@ -10,6 +10,7 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
     private Rigidbody2D rb;
     private Collider2D cloneCollider;
     private ReplayInputDriver replayInput;
+    private Interactor interactor;
 
     public Animator spriteAnimator;
     public SpriteRenderer spriteRenderer;
@@ -40,6 +41,7 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
     [Header("Physics Materials")]
     public PhysicsMaterial2D noFriction;
     public PhysicsMaterial2D fullFriction;
+    public PhysicsMaterial2D deadFriction;
 
     [Header("Spawn Collision Safety")]
     [Tooltip("Layers the clone should temporarily ignore while spawning. Usually Player + Clone.")]
@@ -58,7 +60,6 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
     private bool canJump;
 
     private float slopeDownAngle;
-    private float slopeSideAngle;
     private float lastSlopeAngle;
 
     private Vector2 slopeNormalPerp;
@@ -72,6 +73,7 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
         rb = GetComponent<Rigidbody2D>();
         cloneCollider = GetComponent<Collider2D>();
         replayInput = GetComponent<ReplayInputDriver>();
+        interactor = GetComponent<Interactor>();
 
         if (spriteRenderer == null)
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
@@ -80,6 +82,7 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
             cloneCollider.sharedMaterial = noFriction;
 
         overlapBuffer = new Collider2D[spawnOverlapBufferSize];
+
     }
 
     private void Start()
@@ -91,17 +94,22 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
     {
         replayInput.AdvanceTick();
 
-        CheckGround();
+        if (canMove) CheckGround();
 
-        if (replayInput.JumpPressed && canJump)
+        if (replayInput.JumpPressed && canJump && canMove)
         {
             Jump();
         }
 
-        SlopeCheck();
-        HandleMovement();
+        if (canMove && replayInput.InteractPressed && interactor != null)
+        {
+            interactor.TryInteract();
+        }
+
+        if (canMove) SlopeCheck();
+        if (canMove) HandleMovement();
         HandleGravity();
-        ClampSlopePop();
+        if (canMove) ClampSlopePop();
         KillFun();
 
         UpdateSpawnCollisionSafety();
@@ -254,11 +262,30 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
         if (groundCheck == null)
             return;
 
-        isGrounded = Physics2D.OverlapCircle(
+        isGrounded = false;
+
+        Collider2D[] hits = Physics2D.OverlapCircleAll(
             groundCheck.position,
             groundCheckRadius,
             groundLayer
         );
+
+        foreach (Collider2D hit in hits)
+        {
+            if (hit == null)
+                continue;
+
+            // Do not count this clone's own collider as ground.
+            if (hit == cloneCollider)
+                continue;
+
+            // Also ignore any child colliders belonging to this same clone object.
+            if (hit.transform.IsChildOf(transform))
+                continue;
+
+            isGrounded = true;
+            break;
+        }
 
         if (rb.linearVelocity.y <= 0f)
             isJumping = false;
@@ -313,16 +340,13 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
         if (slopeHitFront)
         {
             isOnSlope = true;
-            slopeSideAngle = Vector2.Angle(slopeHitFront.normal, Vector2.up);
         }
         else if (slopeHitBack)
         {
             isOnSlope = true;
-            slopeSideAngle = Vector2.Angle(slopeHitBack.normal, Vector2.up);
         }
         else
         {
-            slopeSideAngle = 0f;
             isOnSlope = false;
         }
     }
@@ -369,5 +393,19 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
             if (noFriction != null)
                 cloneCollider.sharedMaterial = noFriction;
         }
+    }
+    private bool canMove = true;
+    public void CanMove(bool move)
+    {
+        canMove = move;
+        if (!canMove)
+        {
+            cloneCollider.sharedMaterial = deadFriction;
+        }
+    }
+
+    public bool IsCloneGrounded()
+    {
+        return isGrounded;
     }
 }

@@ -16,6 +16,7 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
     [Header("References")]
     private Rigidbody2D rb;
     private Collider2D playerCollider;
+    private Interactor interactor;
 
     public PlayerInputHandler input;
     public Animator spriteAnimator;
@@ -87,6 +88,8 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
         if (noFriction != null)
             playerCollider.sharedMaterial = noFriction;
 
+        interactor = GetComponent<Interactor>();
+
         walkSource = gameObject.AddComponent<AudioSource>();
         walkSource.clip = walkLoopClip;
         walkSource.loop = true;
@@ -116,6 +119,10 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
             Jump();
         }
 
+        if (input.InteractPressed && interactor != null)
+        {
+            interactor.TryInteract();
+        }
         HandleWalkAudio();
         HandleJumpAudio();
     }
@@ -369,6 +376,9 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
             walkSource.Stop();
         }
     }
+    public bool IsPlayerGrounded()
+    {
+        return isGrounded;
 
     // Cuts the jump sound the moment the upward jump ends (apex or interruption).
     private void HandleJumpAudio()
