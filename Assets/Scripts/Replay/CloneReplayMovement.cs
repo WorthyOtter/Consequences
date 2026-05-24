@@ -10,6 +10,7 @@ public class CloneReplayMovement : MonoBehaviour
     private Rigidbody2D rb;
     private Collider2D cloneCollider;
     private ReplayInputDriver replayInput;
+    private Interactor interactor;
 
     public Animator spriteAnimator;
     public SpriteRenderer spriteRenderer;
@@ -70,6 +71,7 @@ public class CloneReplayMovement : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         cloneCollider = GetComponent<Collider2D>();
         replayInput = GetComponent<ReplayInputDriver>();
+        interactor = GetComponent<Interactor>();
 
         if (spriteRenderer == null)
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
@@ -78,6 +80,7 @@ public class CloneReplayMovement : MonoBehaviour
             cloneCollider.sharedMaterial = noFriction;
 
         overlapBuffer = new Collider2D[spawnOverlapBufferSize];
+
     }
 
     private void Start()
@@ -94,6 +97,11 @@ public class CloneReplayMovement : MonoBehaviour
         if (replayInput.JumpPressed && canJump && canMove)
         {
             Jump();
+        }
+
+        if (canMove && replayInput.InteractPressed && interactor != null)
+        {
+            interactor.TryInteract();
         }
 
         if (canMove) SlopeCheck();
@@ -377,5 +385,10 @@ public class CloneReplayMovement : MonoBehaviour
         {
             cloneCollider.sharedMaterial = deadFriction;
         }
+    }
+
+    public bool IsCloneGrounded()
+    {
+        return isGrounded;
     }
 }

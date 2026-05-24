@@ -15,6 +15,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("References")]
     private Rigidbody2D rb;
     private Collider2D playerCollider;
+    private Interactor interactor;
 
     public PlayerInputHandler input;
     public Animator spriteAnimator;
@@ -79,6 +80,8 @@ public class PlayerMovement : MonoBehaviour
         if (noFriction != null)
             playerCollider.sharedMaterial = noFriction;
 
+        interactor = GetComponent<Interactor>();
+
     }
 
     private void Update()
@@ -93,6 +96,11 @@ public class PlayerMovement : MonoBehaviour
         if (input.JumpPressed && canJump && !isCrouching)
         {
             Jump();
+        }
+
+        if (input.InteractPressed && interactor != null)
+        {
+            interactor.TryInteract();
         }
     }
 
@@ -325,5 +333,9 @@ public class PlayerMovement : MonoBehaviour
             //Audio Clip goes here
             footstepTimer = footstepInterval;
         }
+    }
+    public bool IsPlayerGrounded()
+    {
+        return isGrounded;
     }
 }
