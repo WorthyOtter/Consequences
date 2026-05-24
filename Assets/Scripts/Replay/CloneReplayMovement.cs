@@ -4,7 +4,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
 [RequireComponent(typeof(ReplayInputDriver))]
-public class CloneReplayMovement : MonoBehaviour
+public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
 {
     [Header("References")]
     private Rigidbody2D rb;
@@ -65,6 +65,8 @@ public class CloneReplayMovement : MonoBehaviour
     private Vector2 slopeNormalPerp;
 
     private float timeSinceGrounded = 0f;
+
+    private float knockbackTimer;
 
     private void Awake()
     {
@@ -163,6 +165,13 @@ public class CloneReplayMovement : MonoBehaviour
 
     private void HandleMovement()
     {
+        // While knocked back, ignore replayed input so the hit actually moves the clone.
+        if (knockbackTimer > 0f)
+        {
+            knockbackTimer -= Time.fixedDeltaTime;
+            return;
+        }
+
         float inputX = replayInput.MoveX;
         float targetSpeed = inputX * moveSpeed;
 
@@ -238,6 +247,14 @@ public class CloneReplayMovement : MonoBehaviour
 
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+    }
+
+    // Called by enemies to shove the clone. Replayed input is suspended for
+    // lockoutDuration so the knockback velocity isn't immediately overwritten.
+    public void ApplyKnockback(Vector2 velocity, float lockoutDuration)
+    {
+        rb.linearVelocity = velocity;
+        knockbackTimer = lockoutDuration;
     }
 
     private void CheckGround()

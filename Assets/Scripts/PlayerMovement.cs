@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Audio;
 
 /*
     NOTE: I'm reusing this script from another project to save time. Slopes are "implemented," 
@@ -10,7 +11,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement : MonoBehaviour, IKnockbackTarget
 {
     [Header("References")]
     private Rigidbody2D rb;
@@ -65,12 +66,19 @@ public class PlayerMovement : MonoBehaviour
 
     private Vector2 slopeNormalPerp;
 
-    [Header("Footsteps")]
-    [SerializeField] private float footstepInterval = 0.4f;
+    [Header("Audio")]
+    [SerializeField] private AudioMixerGroup playerAudioGroup;
+    [SerializeField] private AudioClip walkLoopClip;
+    [SerializeField] [Range(0f, 1f)] private float walkVolume = 1f;
+    [SerializeField] private AudioClip jumpClip;
+    [SerializeField] [Range(0f, 1f)] private float jumpVolume = 1f;
     [SerializeField] private float minMoveSpeed = 0.2f;
 
-    private float footstepTimer;
+    private AudioSource walkSource;
+    private AudioSource jumpSource;
     private float timeSinceGrounded = 0;
+
+    private float knockbackTimer;
 
     private void Awake()
     {
@@ -82,6 +90,19 @@ public class PlayerMovement : MonoBehaviour
 
         interactor = GetComponent<Interactor>();
 
+        walkSource = gameObject.AddComponent<AudioSource>();
+        walkSource.clip = walkLoopClip;
+        walkSource.loop = true;
+        walkSource.playOnAwake = false;
+        walkSource.spatialBlend = 0f;          // 2D, not positional
+        walkSource.outputAudioMixerGroup = playerAudioGroup;
+
+        jumpSource = gameObject.AddComponent<AudioSource>();
+        jumpSource.clip = jumpClip;
+        jumpSource.loop = false;
+        jumpSource.playOnAwake = false;
+        jumpSource.spatialBlend = 0f;
+        jumpSource.outputAudioMixerGroup = playerAudioGroup;
     }
 
     private void Update()
@@ -102,6 +123,8 @@ public class PlayerMovement : MonoBehaviour
         {
             interactor.TryInteract();
         }
+        HandleWalkAudio();
+        HandleJumpAudio();
     }
 
     private void FixedUpdate()
@@ -127,6 +150,13 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleMovement()
     {
+        // While knocked back, ignore input so the hit actually moves the player.
+        if (knockbackTimer > 0f)
+        {
+            knockbackTimer -= Time.fixedDeltaTime;
+            return;
+        }
+
         float inputX = input.MoveInput.x;
         float speed = isCrouching ? moveSpeed * crouchSpeedMultiplier : moveSpeed;
         float targetSpeed = inputX * speed;
@@ -172,8 +202,6 @@ public class PlayerMovement : MonoBehaviour
         spriteAnimator.SetBool("IsMoving", Mathf.Abs(inputX) > 0.1f);
         spriteAnimator.SetBool("IsGrounded", isGrounded);
         spriteAnimator.SetBool("IsCrouching", isCrouching);
-
-        HandleFootsteps();
     }
 
     private void HandleGravity()
@@ -200,6 +228,20 @@ public class PlayerMovement : MonoBehaviour
         isJumping = true;
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+
+        if (jumpClip != null)
+        {
+            jumpSource.volume = jumpVolume;
+            jumpSource.Play();
+        }
+    }
+
+    // Called by enemies to shove the player. Movement input is suspended for
+    // lockoutDuration so the knockback velocity isn't immediately overwritten.
+    public void ApplyKnockback(Vector2 velocity, float lockoutDuration)
+    {
+        rb.linearVelocity = velocity;
+        knockbackTimer = lockoutDuration;
     }
 
     private void CheckGround()
@@ -318,24 +360,30 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    private void HandleFootsteps()
+    // Loops the walk clip while the player moves along the ground; stops it otherwise.
+    private void HandleWalkAudio()
     {
-        if (!isGrounded || Mathf.Abs(rb.linearVelocity.x) < minMoveSpeed)
+        bool walking = isGrounded && Mathf.Abs(rb.linearVelocity.x) >= minMoveSpeed;
+
+        if (walking)
         {
-            footstepTimer = 0f;
-            return;
+            walkSource.volume = walkVolume;
+            if (walkLoopClip != null && !walkSource.isPlaying)
+                walkSource.Play();
         }
-
-        footstepTimer -= Time.deltaTime;
-
-        if (footstepTimer <= 0f)
+        else if (walkSource.isPlaying)
         {
-            //Audio Clip goes here
-            footstepTimer = footstepInterval;
+            walkSource.Stop();
         }
     }
     public bool IsPlayerGrounded()
     {
         return isGrounded;
+
+    // Cuts the jump sound the moment the upward jump ends (apex or interruption).
+    private void HandleJumpAudio()
+    {
+        if (!isJumping && jumpSource.isPlaying)
+            jumpSource.Stop();
     }
 }
