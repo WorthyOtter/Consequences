@@ -3515,7 +3515,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 196
-        y: 125
+        y: 126
         width: 77
         height: 168
       alignment: 0
@@ -4064,12 +4064,12 @@ TextureImporter:
       name: e333371e-6282-4818-95e1-b8f53921527c-2_156
       rect:
         serializedVersion: 2
-        x: 100
-        y: 42
-        width: 72
-        height: 67
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+        x: 104
+        y: 46
+        width: 76
+        height: 76
+      alignment: 9
+      pivot: {x: 0.6579315, y: 0.66384345}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []

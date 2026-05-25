@@ -379,11 +379,12 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
     public bool IsPlayerGrounded()
     {
         return isGrounded;
-
+    }
     // Cuts the jump sound the moment the upward jump ends (apex or interruption).
     private void HandleJumpAudio()
     {
         if (!isJumping && jumpSource.isPlaying)
             jumpSource.Stop();
     }
+
 }
