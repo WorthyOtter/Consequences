@@ -25,6 +25,11 @@ public class PressurePlate : MonoBehaviour
     [SerializeField] private UnityEvent onStay;
     [SerializeField] private UnityEvent onLeave;
 
+    [Header("Frequencies")]
+    [SerializeField] private int onEnterFrequency = -1;
+    [SerializeField] private int onStayFrequency = -1;
+    [SerializeField] private int onLeaveFrequency = -1;
+
     private readonly HashSet<Collider2D> collidersInside = new HashSet<Collider2D>();
 
     private bool isPressed;
@@ -57,7 +62,10 @@ public class PressurePlate : MonoBehaviour
         EvaluatePlate();
 
         if (isPressed)
+        {
             onStay?.Invoke();
+            CallFrequency(onStayFrequency);
+        }
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -104,9 +112,15 @@ public class PressurePlate : MonoBehaviour
         UpdateVisual();
 
         if (isPressed)
+        {
             onEnter?.Invoke();
+            CallFrequency(onEnterFrequency);
+        }
         else
+        {
             onLeave?.Invoke();
+            CallFrequency(onLeaveFrequency);
+        }
     }
 
     private bool IsOnActorLayer(Collider2D other)
@@ -148,5 +162,19 @@ public class PressurePlate : MonoBehaviour
             return;
 
         spriteRenderer.sprite = isPressed ? onSprite : offSprite;
+    }
+
+    private void CallFrequency(int frequency)
+    {
+        if (frequency < 0)
+            return;
+
+        if (FrequencyManager.Instance == null)
+        {
+            Debug.LogWarning("No FrequencyManager found in scene.");
+            return;
+        }
+
+        FrequencyManager.Instance.CallFrequency(frequency);
     }
 }

@@ -9,6 +9,7 @@ public class ReplayInputDriver : MonoBehaviour
     public bool JumpPressed { get; private set; }
     public bool JumpHeld { get; private set; }
     public bool InteractPressed { get; private set; }
+    public bool CrouchPressed { get; private set; }
     public bool IsFinished { get; private set; }
 
     public void BeginReplay(InputAttemptData data)
@@ -20,6 +21,7 @@ public class ReplayInputDriver : MonoBehaviour
         JumpPressed = false;
         JumpHeld = false;
         InteractPressed = false;
+        CrouchPressed = false;
 
         IsFinished = attemptData == null ||
                      attemptData.frames == null ||
@@ -35,6 +37,7 @@ public class ReplayInputDriver : MonoBehaviour
     {
         JumpPressed = false;
         InteractPressed = false;
+        CrouchPressed = false;
 
         if (IsFinished)
             return;
@@ -53,6 +56,7 @@ public class ReplayInputDriver : MonoBehaviour
         JumpPressed = frame.jumpPressed;
         JumpHeld = frame.jumpHeld;
         InteractPressed = frame.interactPressed;
+        CrouchPressed = frame.crouchPressed;
 
         tick++;
     }

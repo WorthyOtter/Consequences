@@ -8,7 +8,11 @@ public class LeverInteractable : MonoBehaviour, IInteractable
     public Sprite onSprite;
     public Sprite offSprite;
 
-    [Header("Events")]
+    [Header("Frequencies")]
+    [SerializeField] private int toggleOnFrequency = -1;
+    [SerializeField] private int toggleOffFrequency = -1;
+
+    [Header("Local Events")]
     [SerializeField] private UnityEvent toggleOn;
     [SerializeField] private UnityEvent toggleOff;
 
@@ -30,13 +34,16 @@ public class LeverInteractable : MonoBehaviour, IInteractable
 
         if (IsOn)
         {
-            toggleOn?.Invoke();
+
+            TriggerOn();
             GetComponent<SpriteRenderer>().sprite = onSprite;
+
         }
         else
         {
-            toggleOff?.Invoke();
+            TriggerOff();
             GetComponent<SpriteRenderer>().sprite = offSprite;
+
         }
     }
 
@@ -48,8 +55,24 @@ public class LeverInteractable : MonoBehaviour, IInteractable
         IsOn = value;
 
         if (IsOn)
-            toggleOn?.Invoke();
+            TriggerOn();
         else
-            toggleOff?.Invoke();
+            TriggerOff();
+    }
+
+    private void TriggerOn()
+    {
+        toggleOn?.Invoke();
+
+        if (toggleOnFrequency >= 0 && FrequencyManager.Instance != null)
+            FrequencyManager.Instance.CallFrequency(toggleOnFrequency);
+    }
+
+    private void TriggerOff()
+    {
+        toggleOff?.Invoke();
+
+        if (toggleOffFrequency >= 0 && FrequencyManager.Instance != null)
+            FrequencyManager.Instance.CallFrequency(toggleOffFrequency);
     }
 }

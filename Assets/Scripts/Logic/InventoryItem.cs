@@ -3,7 +3,7 @@ using UnityEngine;
 public class InventoryItem : MonoBehaviour
 {
     public string InventoryItemName;
-
+    public bool GlobalInventory = false;
     void Awake()
     {
         if (InventoryItemName == null || InventoryItemName == "")
@@ -20,7 +20,7 @@ public class InventoryItem : MonoBehaviour
         if (inv == null) return;
         if (inv.CheckInventory(InventoryItemName)) return;
 
-        inv.AddItem(InventoryItemName);
+        inv.AddItem(InventoryItemName, GlobalInventory);
         Destroy(gameObject);
     }
 }
