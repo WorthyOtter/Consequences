@@ -11,6 +11,7 @@ public class InputAttemptRecorder : MonoBehaviour
 
     private bool queuedJumpPressed;
     private bool queuedInteractPressed;
+    private bool queuedCrouchedPressed;
 
     public InputAttemptData CurrentAttempt => currentAttempt;
 
@@ -26,6 +27,7 @@ public class InputAttemptRecorder : MonoBehaviour
         tick = 0;
         queuedJumpPressed = false;
         queuedInteractPressed = false;
+        queuedCrouchedPressed = false;
         isRecording = true;
     }
 
@@ -46,6 +48,9 @@ public class InputAttemptRecorder : MonoBehaviour
 
         if (input.InteractPressed)
             queuedInteractPressed = true;
+
+        if (input.CrouchPressed)
+            queuedCrouchedPressed = true;
     }
 
     private void FixedUpdate()
@@ -58,11 +63,13 @@ public class InputAttemptRecorder : MonoBehaviour
             input.MoveInput.x,
             queuedJumpPressed,
             input.JumpHeld,
-            queuedInteractPressed
+            queuedInteractPressed,
+            queuedCrouchedPressed
         ));
 
         queuedJumpPressed = false;
         queuedInteractPressed = false;
+        queuedCrouchedPressed = false;
 
         tick++;
     }

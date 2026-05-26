@@ -22,6 +22,18 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
     public float airAcceleration = 25f;
     public float airDeceleration = 15f;
 
+    [Header("Crouch")]
+    public float crouchSpeedMultiplier = 0.4f;
+
+    [SerializeField] private CapsuleCollider2D cloneCapCollider;
+    [SerializeField] private Vector2 standingColliderSize = new Vector2(0.1630929f, 0.5210335f);
+    [SerializeField] private Vector2 standingColliderOffset = new Vector2(-0.007883142f, -0.004165451f);
+    [SerializeField] private Vector2 crouchingColliderSize = new Vector2(0.1630929f, 0.25f);
+    [SerializeField] private Vector2 crouchingColliderOffset = new Vector2(0f, -0.135f);
+
+    private bool facingRight = true;
+    private bool isCrouching;
+
     [Header("Gravity")]
     public float upGravityScale = 1f;
     public float downGravityScale = 1.5f;
@@ -82,7 +94,8 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
             cloneCollider.sharedMaterial = noFriction;
 
         overlapBuffer = new Collider2D[spawnOverlapBufferSize];
-
+        if (cloneCapCollider == null)
+            cloneCapCollider = GetComponent<CapsuleCollider2D>();
     }
 
     private void Start()
@@ -96,7 +109,10 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
 
         if (canMove) CheckGround();
 
-        if (replayInput.JumpPressed && canJump && canMove)
+        if (canMove)
+            HandleCrouch();
+
+        if (replayInput.JumpPressed && canJump && canMove && !isCrouching)
         {
             Jump();
         }
@@ -173,7 +189,8 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
         }
 
         float inputX = replayInput.MoveX;
-        float targetSpeed = inputX * moveSpeed;
+        float speed = isCrouching ? moveSpeed * crouchSpeedMultiplier : moveSpeed;
+        float targetSpeed = inputX * speed;
 
         float accelRate;
 
@@ -195,7 +212,7 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
             }
             else
             {
-                rb.linearVelocity = new Vector2(inputX * moveSpeed, rb.linearVelocity.y);
+                rb.linearVelocity = new Vector2(inputX * speed, rb.linearVelocity.y);
                 rb.gravityScale = 1f;
             }
         }
@@ -211,12 +228,19 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
             rb.gravityScale = 1f;
         }
 
+        if (inputX > 0f)
+            facingRight = true;
+        else if (inputX < 0f)
+            facingRight = false;
+
         if (spriteRenderer != null)
+            spriteRenderer.flipX = !facingRight;
+
+        if (spriteAnimator != null)
         {
-            if (inputX > 0f)
-                spriteRenderer.flipX = false;
-            else if (inputX < 0f)
-                spriteRenderer.flipX = true;
+            spriteAnimator.SetBool("IsMoving", Mathf.Abs(inputX) > 0.1f);
+            spriteAnimator.SetBool("IsGrounded", isGrounded);
+            spriteAnimator.SetBool("IsCrouching", isCrouching);
         }
     }
 
@@ -415,5 +439,39 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
     public bool IsCloneGrounded()
     {
         return isGrounded;
+    }
+
+    private void HandleCrouch()
+    {
+        if (!replayInput.CrouchPressed)
+            return;
+
+        if (isGrounded)
+        {
+            isCrouching = !isCrouching;
+            ApplyCrouchCollider();
+        }
+        else
+        {
+            isCrouching = false;
+            ApplyCrouchCollider();
+        }
+    }
+
+    private void ApplyCrouchCollider()
+    {
+        if (cloneCapCollider == null)
+            return;
+
+        if (isCrouching)
+        {
+            cloneCapCollider.size = crouchingColliderSize;
+            cloneCapCollider.offset = crouchingColliderOffset;
+        }
+        else
+        {
+            cloneCapCollider.size = standingColliderSize;
+            cloneCapCollider.offset = standingColliderOffset;
+        }
     }
 }
