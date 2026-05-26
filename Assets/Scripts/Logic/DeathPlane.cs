@@ -19,5 +19,12 @@ public class DeathPlane : MonoBehaviour
             cloneMovement.CanMove(false);
             if (destroyAfterTrigger) Destroy(gameObject);
         }
+
+        EnemyAI enemy = collision.GetComponent<EnemyAI>();
+        if (enemy != null)
+        {
+            enemy.Die();
+            if (destroyAfterTrigger) Destroy(gameObject);
+        }
     }
 }
