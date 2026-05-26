@@ -284,7 +284,7 @@ MonoBehaviour:
   upGravityScale: 1
   downGravityScale: 1.5
   crouchSpeedMultiplier: 0.4
-  jumpForce: 5
+  jumpForce: 6
   groundCheck: {fileID: 5114486927335099915}
   groundCheckRadius: 0.2
   groundLayer:

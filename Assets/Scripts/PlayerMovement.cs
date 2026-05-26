@@ -3,11 +3,9 @@ using UnityEngine;
 using UnityEngine.Audio;
 
 /*
-    NOTE: I'm reusing this script from another project to save time. Slopes are "implemented," 
+    NOTE: I'm reusing this script from another project to save time. Slopes are "implemented,"
     but were never tested so no idea if that functions.
 */
-
-
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
@@ -16,6 +14,7 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
     [Header("References")]
     private Rigidbody2D rb;
     private Collider2D playerCollider;
+    private CapsuleCollider2D playerCapCollider;
     private Interactor interactor;
 
     public PlayerInputHandler input;
@@ -35,6 +34,7 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
 
     [Header("Crouch")]
     public float crouchSpeedMultiplier = 0.4f;
+    public float crouchHeight = 0.25f;
 
     [Header("Jump")]
     public float jumpForce = 10f;
@@ -67,12 +67,25 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
     private Vector2 slopeNormalPerp;
 
     [Header("Audio")]
-    [SerializeField] private AudioMixerGroup playerAudioGroup;
-    [SerializeField] private AudioClip walkLoopClip;
-    [SerializeField] [Range(0f, 1f)] private float walkVolume = 1f;
-    [SerializeField] private AudioClip jumpClip;
-    [SerializeField] [Range(0f, 1f)] private float jumpVolume = 1f;
-    [SerializeField] private float minMoveSpeed = 0.2f;
+    [SerializeField]
+    private AudioMixerGroup playerAudioGroup;
+
+    [SerializeField]
+    private AudioClip walkLoopClip;
+
+    [SerializeField]
+    [Range(0f, 1f)]
+    private float walkVolume = 1f;
+
+    [SerializeField]
+    private AudioClip jumpClip;
+
+    [SerializeField]
+    [Range(0f, 1f)]
+    private float jumpVolume = 1f;
+
+    [SerializeField]
+    private float minMoveSpeed = 0.2f;
 
     private AudioSource walkSource;
     private AudioSource jumpSource;
@@ -84,6 +97,7 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
     {
         rb = GetComponent<Rigidbody2D>();
         playerCollider = GetComponent<Collider2D>();
+        playerCapCollider = GetComponent<CapsuleCollider2D>();
 
         if (noFriction != null)
             playerCollider.sharedMaterial = noFriction;
@@ -94,7 +108,7 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
         walkSource.clip = walkLoopClip;
         walkSource.loop = true;
         walkSource.playOnAwake = false;
-        walkSource.spatialBlend = 0f;          // 2D, not positional
+        walkSource.spatialBlend = 0f; // 2D, not positional
         walkSource.outputAudioMixerGroup = playerAudioGroup;
 
         jumpSource = gameObject.AddComponent<AudioSource>();
@@ -108,11 +122,27 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
     private void Update()
     {
         CheckGround();
-
-        if (!isGrounded)
-            isCrouching = false;
-        else if (input.CrouchPressed)
-            isCrouching = !isCrouching;
+        if (input.CrouchPressed)
+        {
+            if (isGrounded)
+            {
+                isCrouching = !isCrouching;
+                if (isCrouching)
+                {
+                    playerCapCollider.size = new Vector2(0.1630929f, 0.25f);
+                    playerCapCollider.offset = new Vector2(0f, -0.135f);
+                }
+                else
+                {
+                    playerCapCollider.size = new Vector2(0.1630929f, 0.5210335f);
+                    playerCapCollider.offset = new Vector2(-0.007883142f, -0.004165451f);
+                }
+            }
+            else
+            {
+                isCrouching = false;
+            }
+        }
 
         if (input.JumpPressed && canJump && !isCrouching)
         {
@@ -187,10 +217,13 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
         }
         else
         {
-            float newX = Mathf.MoveTowards(rb.linearVelocity.x, targetSpeed, accelRate * Time.fixedDeltaTime);
+            float newX = Mathf.MoveTowards(
+                rb.linearVelocity.x,
+                targetSpeed,
+                accelRate * Time.fixedDeltaTime
+            );
             rb.linearVelocity = new Vector2(newX, rb.linearVelocity.y);
             rb.gravityScale = 1;
-
         }
 
         if (inputX > 0)
@@ -246,11 +279,7 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
 
     private void CheckGround()
     {
-        isGrounded = Physics2D.OverlapCircle(
-            groundCheck.position,
-            groundCheckRadius,
-            groundLayer
-        );
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
 
         if (rb.linearVelocity.y <= 0f)
             isJumping = false;
@@ -260,7 +289,6 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
             timeSinceGrounded = 0f;
             canJump = true;
         }
-
     }
 
     private void SlopeCheck()
@@ -276,8 +304,18 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
 
     private void SlopeCheckHorizontal(Vector2 checkPos)
     {
-        RaycastHit2D slopeHitFront = Physics2D.Raycast(checkPos, Vector2.right, slopeCheckDistance, groundLayer);
-        RaycastHit2D slopeHitBack = Physics2D.Raycast(checkPos, Vector2.left, slopeCheckDistance, groundLayer);
+        RaycastHit2D slopeHitFront = Physics2D.Raycast(
+            checkPos,
+            Vector2.right,
+            slopeCheckDistance,
+            groundLayer
+        );
+        RaycastHit2D slopeHitBack = Physics2D.Raycast(
+            checkPos,
+            Vector2.left,
+            slopeCheckDistance,
+            groundLayer
+        );
 
         if (slopeHitFront)
         {
@@ -298,7 +336,12 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
 
     private void SlopeCheckVertical(Vector2 checkPos)
     {
-        RaycastHit2D hit = Physics2D.Raycast(checkPos, Vector2.down, slopeCheckDistance, groundLayer);
+        RaycastHit2D hit = Physics2D.Raycast(
+            checkPos,
+            Vector2.down,
+            slopeCheckDistance,
+            groundLayer
+        );
 
         if (hit)
         {
@@ -322,11 +365,13 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
 
         if (playerCollider != null)
         {
-            if (isGrounded &&
-                isOnSlope &&
-                canWalkOnSlope &&
-                Mathf.Abs(input.MoveInput.x) < 0.01f &&
-                Mathf.Abs(rb.linearVelocity.y) < 0.05f)
+            if (
+                isGrounded
+                && isOnSlope
+                && canWalkOnSlope
+                && Mathf.Abs(input.MoveInput.x) < 0.01f
+                && Mathf.Abs(rb.linearVelocity.y) < 0.05f
+            )
             {
                 playerCollider.sharedMaterial = fullFriction;
             }
@@ -339,7 +384,8 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
 
     private void OnDrawGizmosSelected()
     {
-        if (groundCheck == null) return;
+        if (groundCheck == null)
+            return;
 
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
@@ -376,15 +422,16 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
             walkSource.Stop();
         }
     }
+
     public bool IsPlayerGrounded()
     {
         return isGrounded;
     }
+
     // Cuts the jump sound the moment the upward jump ends (apex or interruption).
     private void HandleJumpAudio()
     {
         if (!isJumping && jumpSource.isPlaying)
             jumpSource.Stop();
     }
-
 }
