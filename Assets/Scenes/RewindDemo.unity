@@ -105543,11 +105543,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnvironmentAudioManager
   environmentGroup: {fileID: -6215412859526156167, guid: 6c58d5d0f22f4428891e4b5d671dbab0, type: 2}
   ambientLoop: {fileID: 8300000, guid: b502a1136e2bd4917902bfe6cfa35429, type: 3}
-  ambientLoopVolume: 1
+  ambientLoopVolume: 0.512
   randomClipA: {fileID: 8300000, guid: 8dd1d69e7e0e24665a9c2714f401167c, type: 3}
-  randomClipAVolume: 1
+  randomClipAVolume: 0.109
   randomClipB: {fileID: 8300000, guid: dc08c1f5474ca4e0d838a28546aa5328, type: 3}
-  randomClipBVolume: 1
+  randomClipBVolume: 0.088
   minInterval: 15
   maxInterval: 45
 --- !u!4 &1982528549

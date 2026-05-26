@@ -401,6 +401,14 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
         if (!canMove)
         {
             cloneCollider.sharedMaterial = deadFriction;
+
+            if (spriteAnimator != null && spriteAnimator.runtimeAnimatorController != null)
+            {
+                spriteAnimator.SetBool("IsCrouching", false);
+                spriteAnimator.SetBool("IsMoving", false);
+                spriteAnimator.SetBool("IsGrounded", true);
+                spriteAnimator.Play("Death", 0, 0f);
+            }
         }
     }
 
