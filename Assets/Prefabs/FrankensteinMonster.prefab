@@ -223,4 +223,4 @@ MonoBehaviour:
   attackClip: {fileID: 8300000, guid: 6996371e766ef465e9514337491214f2, type: 3}
   attackVolume: 1
   breathingClip: {fileID: 8300000, guid: 7970f59ee0d824ba1b8d010f3cd542d8, type: 3}
-  breathingVolume: 1
+  breathingVolume: 0.177
