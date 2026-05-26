@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -74,7 +75,12 @@ public class EnemyAI : MonoBehaviour
     private static readonly int IdleHash = Animator.StringToHash("EnemyIdle");
     private static readonly int WalkHash = Animator.StringToHash("EnemyWalk");
     private static readonly int AttackHash = Animator.StringToHash("EnemyAttack");
+    private static readonly int DeathHash = Animator.StringToHash("EnemyDeath");
     private int currentStateHash;
+
+    [Header("Death")]
+    [SerializeField] private float deathAnimationDuration = 0.6f;
+    private bool hasDied;
 
     private void Awake()
     {
@@ -119,6 +125,9 @@ public class EnemyAI : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (hasDied)
+            return;
+
         if (cooldownTimer > 0f)
             cooldownTimer -= Time.fixedDeltaTime;
 
@@ -274,6 +283,39 @@ public class EnemyAI : MonoBehaviour
             return;
         currentStateHash = stateHash;
         animator.Play(stateHash);
+    }
+
+    public void Die()
+    {
+        if (hasDied)
+            return;
+
+        hasDied = true;
+
+        Debug.Log("Enemy death triggered: " + gameObject.name);
+
+        if (walkSource != null && walkSource.isPlaying) walkSource.Stop();
+        if (attackSource != null && attackSource.isPlaying) attackSource.Stop();
+        if (breathingSource != null && breathingSource.isPlaying) breathingSource.Stop();
+
+        if (rb != null)
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+
+        if (animator != null && animator.runtimeAnimatorController != null)
+            Play(DeathHash);
+
+        StartCoroutine(FreezeAfterDeathAnimation());
+    }
+
+    private IEnumerator FreezeAfterDeathAnimation()
+    {
+        yield return new WaitForSecondsRealtime(deathAnimationDuration);
+
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.bodyType = RigidbodyType2D.Static;
+        }
     }
 
     private void OnDrawGizmosSelected()
