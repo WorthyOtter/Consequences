@@ -3162,12 +3162,12 @@ TextureImporter:
       name: e333371e-6282-4818-95e1-b8f53921527c-2_115
       rect:
         serializedVersion: 2
-        x: 1156
-        y: 443
-        width: 80
-        height: 77
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+        x: 1159
+        y: 445
+        width: 95
+        height: 72
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []

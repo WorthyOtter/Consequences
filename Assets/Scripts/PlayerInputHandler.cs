@@ -8,8 +8,8 @@ public class PlayerInputHandler : MonoBehaviour
     public InputAction InteractAction;
     public InputAction RetryAction;
     public InputAction CrouchAction;
-    public bool JumpHeld => JumpAction.IsPressed();
 
+    public bool JumpHeld => JumpAction.IsPressed();
 
     public Vector2 MoveInput { get; private set; }
     public bool JumpPressed { get; private set; }
@@ -43,5 +43,4 @@ public class PlayerInputHandler : MonoBehaviour
         RetryPressed = RetryAction.triggered;
         CrouchPressed = CrouchAction.triggered;
     }
-
 }
