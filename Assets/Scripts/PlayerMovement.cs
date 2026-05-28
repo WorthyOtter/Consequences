@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.UIElements;
 
 /*
     NOTE: I'm reusing this script from another project to save time. Slopes are "implemented,"
@@ -16,7 +17,7 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
     private Collider2D playerCollider;
     private CapsuleCollider2D playerCapCollider;
     private Interactor interactor;
-
+    private GameObject gameManager;
     public PlayerInputHandler input;
     public Animator spriteAnimator;
     public SpriteRenderer spriteRenderer;
@@ -40,9 +41,14 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
     public float jumpForce = 10f;
 
     [Header("Input Buffering")]
-    [SerializeField] private float jumpBufferTime = 0.12f;
-    [SerializeField] private float interactBufferTime = 0.12f;
-    [SerializeField] private float crouchBufferTime = 0.12f;
+    [SerializeField]
+    private float jumpBufferTime = 0.12f;
+
+    [SerializeField]
+    private float interactBufferTime = 0.12f;
+
+    [SerializeField]
+    private float crouchBufferTime = 0.12f;
 
     private float jumpBufferCounter;
     private float interactBufferCounter;
@@ -104,6 +110,7 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
 
     private void Awake()
     {
+        gameManager = GameObject.Find("GameManager");
         rb = GetComponent<Rigidbody2D>();
         playerCollider = GetComponent<Collider2D>();
         playerCapCollider = GetComponent<CapsuleCollider2D>();
@@ -133,7 +140,10 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
         CaptureBufferedInput();
 
         CheckGround();
-
+        if (transform.position.y < -40f && transform.position.x < 20f)
+        {
+            gameManager.GetComponent<TimeLoopManager>().spawn2Reached = true;
+        }
         if (crouchBufferCounter > 0f)
         {
             HandleCrouch();

@@ -277,16 +277,20 @@ MonoBehaviour:
   input: {fileID: 3997596774567977755}
   spriteAnimator: {fileID: 3265052151268656007}
   spriteRenderer: {fileID: 863484616628676596}
+  loopManager: {fileID: 0}
   moveSpeed: 4
   acceleration: 60
   deceleration: 90
   airAcceleration: 25
-  airDeceleration: 15
+  airDeceleration: 14.6
   upGravityScale: 1
   downGravityScale: 1.5
   crouchSpeedMultiplier: 0.4
   crouchHeight: 0.25
   jumpForce: 6.5
+  jumpBufferTime: 0.12
+  interactBufferTime: 0.12
+  crouchBufferTime: 0.12
   groundCheck: {fileID: 5114486927335099915}
   groundCheckRadius: 0.2
   groundLayer:

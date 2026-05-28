@@ -9,6 +9,8 @@ public class TimeLoopManager : MonoBehaviour
 
     [Header("Spawn")]
     public Transform spawnPoint;
+    [Header("Spawn2")]
+    public Transform spawnPoint2;
 
     [Header("Loop Settings")]
     [SerializeField] private int maxCopies = 3;
@@ -18,6 +20,7 @@ public class TimeLoopManager : MonoBehaviour
     private GameObject currentPlayer;
     private InputAttemptRecorder currentRecorder;
 
+    public bool spawn2Reached = false;
 
     [SerializeField] private Transform resetTemplateContainer;
 
@@ -72,7 +75,10 @@ public class TimeLoopManager : MonoBehaviour
     public void PlayerDied()
     {
         SaveCurrentAttempt();
-
+        if (spawn2Reached)
+        {
+            spawnPoint = spawnPoint2;
+        }
         if (currentPlayer != null)
             Destroy(currentPlayer);
 

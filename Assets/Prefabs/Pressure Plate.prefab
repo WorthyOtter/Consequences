@@ -231,7 +231,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8256bded9bc0b60468d8958ab70c3198, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PressurePlate
-  requiredWeight: 2
+  requiredWeight: 1
   actorLayers:
     serializedVersion: 2
     m_Bits: 384
@@ -250,6 +250,9 @@ MonoBehaviour:
   onLeave:
     m_PersistentCalls:
       m_Calls: []
+  onEnterFrequency: -1
+  onStayFrequency: -1
+  onLeaveFrequency: -1
 --- !u!114 &7779238607484014001
 MonoBehaviour:
   m_ObjectHideFlags: 0
