@@ -41,6 +41,15 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
     [Header("Jump")]
     public float jumpForce = 10f;
 
+    [Header("Input Buffering")]
+    [SerializeField] private float jumpBufferTime = 0.12f;
+    [SerializeField] private float interactBufferTime = 0.12f;
+    [SerializeField] private float crouchBufferTime = 0.12f;
+
+    private float jumpBufferCounter;
+    private float interactBufferCounter;
+    private float crouchBufferCounter;
+
     [Header("Ground Checks")]
     public Transform groundCheck;
     public float groundCheckRadius = 0.2f;
@@ -72,6 +81,7 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
     private bool canJump;
 
     private float slopeDownAngle;
+    private float slopeSideAngle;
     private float lastSlopeAngle;
 
     private Vector2 slopeNormalPerp;
@@ -106,20 +116,26 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
     private void FixedUpdate()
     {
         replayInput.AdvanceTick();
+        CaptureBufferedReplayInput();
 
         if (canMove) CheckGround();
 
-        if (canMove)
-            HandleCrouch();
-
-        if (replayInput.JumpPressed && canJump && canMove && !isCrouching)
+        if (canMove && crouchBufferCounter > 0f)
         {
-            Jump();
+            HandleCrouch();
+            crouchBufferCounter = 0f;
         }
 
-        if (canMove && replayInput.InteractPressed && interactor != null)
+        if (jumpBufferCounter > 0f && canJump && canMove && !isCrouching)
+        {
+            Jump();
+            jumpBufferCounter = 0f;
+        }
+
+        if (canMove && interactBufferCounter > 0f && interactor != null)
         {
             interactor.TryInteract();
+            interactBufferCounter = 0f;
         }
 
         if (canMove) SlopeCheck();
@@ -129,6 +145,31 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
         KillFun();
 
         UpdateSpawnCollisionSafety();
+        TickInputBuffers();
+    }
+
+    private void CaptureBufferedReplayInput()
+    {
+        if (replayInput.JumpPressed)
+            jumpBufferCounter = jumpBufferTime;
+
+        if (replayInput.InteractPressed)
+            interactBufferCounter = interactBufferTime;
+
+        if (replayInput.CrouchPressed)
+            crouchBufferCounter = crouchBufferTime;
+    }
+
+    private void TickInputBuffers()
+    {
+        if (jumpBufferCounter > 0f)
+            jumpBufferCounter -= Time.fixedDeltaTime;
+
+        if (interactBufferCounter > 0f)
+            interactBufferCounter -= Time.fixedDeltaTime;
+
+        if (crouchBufferCounter > 0f)
+            crouchBufferCounter -= Time.fixedDeltaTime;
     }
 
     private void IgnoreSpawnOverlaps()
@@ -364,13 +405,16 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
         if (slopeHitFront)
         {
             isOnSlope = true;
+            slopeSideAngle = Vector2.Angle(slopeHitFront.normal, Vector2.up);
         }
         else if (slopeHitBack)
         {
             isOnSlope = true;
+            slopeSideAngle = Vector2.Angle(slopeHitBack.normal, Vector2.up);
         }
         else
         {
+            slopeSideAngle = 0f;
             isOnSlope = false;
         }
     }
@@ -396,10 +440,23 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
             }
 
             lastSlopeAngle = slopeDownAngle;
+        }
+        else
+        {
+            slopeDownAngle = 0f;
+        }
 
-            canWalkOnSlope = slopeDownAngle <= maxSlopeAngle;
+        canWalkOnSlope = slopeDownAngle <= maxSlopeAngle && slopeSideAngle <= maxSlopeAngle;
 
-            if (isOnSlope && canWalkOnSlope && Mathf.Abs(replayInput.MoveX) < 0.01f)
+        if (cloneCollider != null)
+        {
+            if (
+                isGrounded
+                && isOnSlope
+                && canWalkOnSlope
+                && Mathf.Abs(replayInput.MoveX) < 0.01f
+                && Mathf.Abs(rb.linearVelocity.y) < 0.05f
+            )
             {
                 if (fullFriction != null)
                     cloneCollider.sharedMaterial = fullFriction;
@@ -410,14 +467,8 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
                     cloneCollider.sharedMaterial = noFriction;
             }
         }
-        else
-        {
-            canWalkOnSlope = false;
-
-            if (noFriction != null)
-                cloneCollider.sharedMaterial = noFriction;
-        }
     }
+
     private bool canMove = true;
     public void CanMove(bool move)
     {
@@ -443,19 +494,16 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
 
     private void HandleCrouch()
     {
-        if (!replayInput.CrouchPressed)
-            return;
-
         if (isGrounded)
         {
             isCrouching = !isCrouching;
-            ApplyCrouchCollider();
         }
         else
         {
             isCrouching = false;
-            ApplyCrouchCollider();
         }
+
+        ApplyCrouchCollider();
     }
 
     private void ApplyCrouchCollider()

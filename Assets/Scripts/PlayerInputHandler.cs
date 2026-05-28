@@ -12,6 +12,7 @@ public class PlayerInputHandler : MonoBehaviour
     public bool JumpHeld => JumpAction.IsPressed();
 
     public Vector2 MoveInput { get; private set; }
+
     public bool JumpPressed { get; private set; }
     public bool InteractPressed { get; private set; }
     public bool RetryPressed { get; private set; }
@@ -38,9 +39,34 @@ public class PlayerInputHandler : MonoBehaviour
     private void Update()
     {
         MoveInput = MoveAction.ReadValue<Vector2>();
-        JumpPressed = JumpAction.triggered;
-        InteractPressed = InteractAction.triggered;
+
+        // These latch until PlayerMovement consumes them.
+        // This prevents quick taps from being lost between Update and FixedUpdate.
+        if (JumpAction.triggered)
+            JumpPressed = true;
+
+        if (InteractAction.triggered)
+            InteractPressed = true;
+
+        if (CrouchAction.triggered)
+            CrouchPressed = true;
+
+        // Leave retry as a normal one-frame input.
         RetryPressed = RetryAction.triggered;
-        CrouchPressed = CrouchAction.triggered;
+    }
+
+    public void ConsumeJumpPressed()
+    {
+        JumpPressed = false;
+    }
+
+    public void ConsumeInteractPressed()
+    {
+        InteractPressed = false;
+    }
+
+    public void ConsumeCrouchPressed()
+    {
+        CrouchPressed = false;
     }
 }

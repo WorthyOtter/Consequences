@@ -8,7 +8,7 @@ public class TimeLoopManager : MonoBehaviour
     [SerializeField] private GameObject replayClonePrefab;
 
     [Header("Spawn")]
-    [SerializeField] private Transform spawnPoint;
+    public Transform spawnPoint;
 
     [Header("Loop Settings")]
     [SerializeField] private int maxCopies = 3;

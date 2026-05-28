@@ -39,6 +39,15 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
     [Header("Jump")]
     public float jumpForce = 10f;
 
+    [Header("Input Buffering")]
+    [SerializeField] private float jumpBufferTime = 0.12f;
+    [SerializeField] private float interactBufferTime = 0.12f;
+    [SerializeField] private float crouchBufferTime = 0.12f;
+
+    private float jumpBufferCounter;
+    private float interactBufferCounter;
+    private float crouchBufferCounter;
+
     [Header("Ground Checks")]
     public Transform groundCheck;
     public float groundCheckRadius = 0.2f;
@@ -119,58 +128,113 @@ public class PlayerMovement : MonoBehaviour, IKnockbackTarget
         jumpSource.outputAudioMixerGroup = playerAudioGroup;
     }
 
-    private void Update()
-    {
-        CheckGround();
-        if (input.CrouchPressed)
-        {
-            if (isGrounded)
-            {
-                isCrouching = !isCrouching;
-                if (isCrouching)
-                {
-                    playerCapCollider.size = new Vector2(0.1630929f, 0.25f);
-                    playerCapCollider.offset = new Vector2(0f, -0.135f);
-                }
-                else
-                {
-                    playerCapCollider.size = new Vector2(0.1630929f, 0.5210335f);
-                    playerCapCollider.offset = new Vector2(-0.007883142f, -0.004165451f);
-                }
-            }
-            else
-            {
-                isCrouching = false;
-            }
-        }
-
-        if (input.JumpPressed && canJump && !isCrouching)
-        {
-            Jump();
-        }
-
-        if (input.InteractPressed && interactor != null)
-        {
-            interactor.TryInteract();
-        }
-        HandleWalkAudio();
-        HandleJumpAudio();
-    }
-
     private void FixedUpdate()
     {
+        CaptureBufferedInput();
+
+        CheckGround();
+
+        if (crouchBufferCounter > 0f)
+        {
+            HandleCrouch();
+            crouchBufferCounter = 0f;
+        }
+
+        if (jumpBufferCounter > 0f && canJump && !isCrouching)
+        {
+            Jump();
+            jumpBufferCounter = 0f;
+        }
+
+        if (interactBufferCounter > 0f && interactor != null)
+        {
+            interactor.TryInteract();
+            interactBufferCounter = 0f;
+        }
+
+        HandleWalkAudio();
+        HandleJumpAudio();
         SlopeCheck();
         HandleMovement();
         HandleGravity();
         ClampSlopePop();
         KillFun();
+
+        TickInputBuffers();
+    }
+
+    private void CaptureBufferedInput()
+    {
+        if (input == null)
+            return;
+
+        if (input.JumpPressed)
+        {
+            jumpBufferCounter = jumpBufferTime;
+            input.ConsumeJumpPressed();
+        }
+
+        if (input.InteractPressed)
+        {
+            interactBufferCounter = interactBufferTime;
+            input.ConsumeInteractPressed();
+        }
+
+        if (input.CrouchPressed)
+        {
+            crouchBufferCounter = crouchBufferTime;
+            input.ConsumeCrouchPressed();
+        }
+    }
+
+    private void TickInputBuffers()
+    {
+        if (jumpBufferCounter > 0f)
+            jumpBufferCounter -= Time.fixedDeltaTime;
+
+        if (interactBufferCounter > 0f)
+            interactBufferCounter -= Time.fixedDeltaTime;
+
+        if (crouchBufferCounter > 0f)
+            crouchBufferCounter -= Time.fixedDeltaTime;
+    }
+
+    private void HandleCrouch()
+    {
+        if (isGrounded)
+        {
+            isCrouching = !isCrouching;
+        }
+        else
+        {
+            isCrouching = false;
+        }
+
+        ApplyCrouchCollider();
+    }
+
+    private void ApplyCrouchCollider()
+    {
+        if (playerCapCollider == null)
+            return;
+
+        if (isCrouching)
+        {
+            playerCapCollider.size = new Vector2(0.1630929f, 0.25f);
+            playerCapCollider.offset = new Vector2(0f, -0.135f);
+        }
+        else
+        {
+            playerCapCollider.size = new Vector2(0.1630929f, 0.5210335f);
+            playerCapCollider.offset = new Vector2(-0.007883142f, -0.004165451f);
+        }
     }
 
     private void KillFun() // kills funny coyote jumps
     {
         if (!isGrounded)
         {
-            timeSinceGrounded += Time.deltaTime;
+            timeSinceGrounded += Time.fixedDeltaTime;
         }
         if (!isGrounded && timeSinceGrounded >= 0.15f)
         {

@@ -43,13 +43,15 @@ public class InputAttemptRecorder : MonoBehaviour
             return;
 
         // Cache button-down events in Update so quick taps are not missed.
-        if (input.JumpPressed)
+        // Read the raw InputActions here instead of the latched properties,
+        // because PlayerMovement may consume the latched values in FixedUpdate.
+        if (input.JumpAction.triggered)
             queuedJumpPressed = true;
 
-        if (input.InteractPressed)
+        if (input.InteractAction.triggered)
             queuedInteractPressed = true;
 
-        if (input.CrouchPressed)
+        if (input.CrouchAction.triggered)
             queuedCrouchedPressed = true;
     }
 
