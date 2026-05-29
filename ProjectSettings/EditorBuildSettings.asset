@@ -6,7 +6,10 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: 8c9cfa26abfee488c85f1582747f6a02
+    path: Assets/Scenes/StartScreen.unity
+    guid: 1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d
+  - enabled: 1
+    path: Assets/Scenes/RewindDemo.unity
+    guid: 34deca09ca2267f41854ae4730a67ba9
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
