@@ -21,6 +21,9 @@ MonoBehaviour:
   m_OverrideGlobalSceneList: 1
   m_Scenes:
   - m_enabled: 1
+    m_path: Assets/Scenes/StartScreen.unity
+    m_guid: 1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d
+  - m_enabled: 1
     m_path: Assets/Scenes/RewindDemo.unity
     m_guid: 34deca09ca2267f41854ae4730a67ba9
   m_HasScriptingDefines: 0
