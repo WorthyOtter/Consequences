@@ -118,7 +118,8 @@ public class CloneReplayMovement : MonoBehaviour, IKnockbackTarget
         replayInput.AdvanceTick();
         CaptureBufferedReplayInput();
 
-        if (canMove) CheckGround();
+        /*if (canMove)*/
+        CheckGround();
 
         if (canMove && crouchBufferCounter > 0f)
         {
